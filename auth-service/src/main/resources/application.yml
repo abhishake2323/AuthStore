@@ -1,0 +1,23 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: auth-service
+  datasource:
+    url: jdbc:h2:mem:authdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+  h2:
+    console:
+      enabled: true
+
+jwt:
+  # Secret must be at least 256 bits for HS256. Using a dummy secret for demonstration.
+  secret: YWUzZjM4NWQ2NWFiNGI0MmFmMWJjZDI4NDBlOGZiMmExMTA2ZDI5NWIwODI2NjdmYzIyOWI1YTRmNzkyYTQwMQ==
+  expiration: 86400000 # 1 day in milliseconds
