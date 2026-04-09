@@ -1,0 +1,17 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: storage-service
+  threads:
+    virtual:
+      enabled: true
+
+jwt:
+  secret: YWUzZjM4NWQ2NWFiNGI0MmFmMWJjZDI4NDBlOGZiMmExMTA2ZDI5NWIwODI2NjdmYzIyOWI1YTRmNzkyYTQwMQ==
+
+logging:
+  service:
+    host: localhost
+    port: 9000
