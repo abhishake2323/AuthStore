@@ -18,6 +18,10 @@ spring:
       enabled: true
 
 jwt:
-  # Secret must be at least 256 bits for HS256. Using a dummy secret for demonstration.
-  secret: YWUzZjM4NWQ2NWFiNGI0MmFmMWJjZDI4NDBlOGZiMmExMTA2ZDI5NWIwODI2NjdmYzIyOWI1YTRmNzkyYTQwMQ==
+  # Secret must be at least 256 bits for HS256. 
+  secret: ${JWT_SECRET}
   expiration: 86400000 # 1 day in milliseconds
+
+admin:
+  username: ${ADMIN_USERNAME}
+  password: ${ADMIN_PASSWORD}

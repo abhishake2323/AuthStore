@@ -12,3 +12,6 @@ mqtt:
   broker: tcp://broker.hivemq.com:1883
   client-id: vault-ai-detector-client-1
   topic: vault/sec/alerts
+
+jwt:
+  secret: ${JWT_SECRET}

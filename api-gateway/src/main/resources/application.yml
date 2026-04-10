@@ -3,8 +3,8 @@ server:
   ssl:
     enabled: true
     key-store: file:vault-keystore.p12
-    key-store-password: password
-    key-password: password
+    key-store-password: ${VAULT_KEYSTORE_PASSWORD}
+    key-password: ${VAULT_KEYSTORE_PASSWORD}
     key-store-type: PKCS12
     enabled-protocols: TLSv1.3
 
