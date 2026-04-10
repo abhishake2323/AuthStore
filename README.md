@@ -1,12 +1,10 @@
-# Secure Microservices File Vault
+# AuthStore - Secure Microservices File Vault
 
 ![Architecture](https://img.shields.io/badge/Architecture-Microservices-blue) ![Java](https://img.shields.io/badge/Java-21-orange) ![Security](https://img.shields.io/badge/Security-Zero%20Trust-red)
 
 A proof-of-concept, highly concurrent, distributed file storage ecosystem built securely on Java 21, Spring Boot, and Virtual Threads. Designed natively with a strict Zero-Trust security posture, the project leverages stateless Web Tokens (JWT), cryptographic HMAC Datagram validation, and real-time AI-simulated quarantine capabilities over IoT protocols.
 
 ## Architecture
-
-(Note: GitHub will automatically render the below Mermaid code block into a visual flowchart graph when viewed in a web browser)
 
 ```mermaid
 graph TD
