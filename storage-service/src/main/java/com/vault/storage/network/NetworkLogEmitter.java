@@ -12,9 +12,13 @@ import java.nio.charset.StandardCharsets;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class NetworkLogEmitter {
+
+    private static final Logger log = LoggerFactory.getLogger(NetworkLogEmitter.class);
 
     @Value("${logging.service.host}")
     private String logHost;
@@ -45,9 +49,9 @@ public class NetworkLogEmitter {
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, logPort);
             
             socket.send(packet);
-            System.out.println("UDP Packet sent with HMAC signature!");
+            log.info("UDP Packet sent with HMAC signature!");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to send UDP audit log packet", e);
         }
     }
 }

@@ -8,9 +8,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class AiAnomalyDetector {
+
+    private static final Logger log = LoggerFactory.getLogger(AiAnomalyDetector.class);
 
     @Autowired
     private MqttClient mqttClient;
@@ -18,23 +22,23 @@ public class AiAnomalyDetector {
     @Value("${mqtt.topic}")
     private String alertTopic;
 
-    public void analyzeLog(String log) {
-        System.out.println("Analyzing log snippet using simulated AI model...");
+    public void analyzeLog(String logSnippet) {
+        log.info("Analyzing log snippet using simulated AI model...");
         
         // Simulating Anomaly detection (e.g., if a user uploads a banned/suspicious file type, or too frequently)
-        boolean isAnomaly = log.contains("suspicious");
+        boolean isAnomaly = logSnippet.contains("suspicious");
 
         if (isAnomaly) {
-            System.err.println("!!! ANOMALY DETECTED !!! Dispatching Alert to MQTT Topic: " + alertTopic);
+            log.warn("!!! ANOMALY DETECTED !!! Dispatching Alert to MQTT Topic: {}", alertTopic);
             try {
-                MqttMessage message = new MqttMessage(("QUARANTINE_ALERT: " + log).getBytes(StandardCharsets.UTF_8));
+                MqttMessage message = new MqttMessage(("QUARANTINE_ALERT: " + logSnippet).getBytes(StandardCharsets.UTF_8));
                 message.setQos(1);
                 mqttClient.publish(alertTopic, message);
             } catch (MqttException e) {
-                e.printStackTrace();
+                log.error("Failed to dispatcher MQTT payload", e);
             }
         } else {
-            System.out.println("Log passed anomaly detection.");
+            log.info("Log passed anomaly detection.");
         }
     }
 }

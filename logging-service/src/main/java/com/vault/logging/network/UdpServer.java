@@ -13,9 +13,13 @@ import java.nio.charset.StandardCharsets;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class UdpServer {
+
+    private static final Logger log = LoggerFactory.getLogger(UdpServer.class);
 
     @Value("${udp.port}")
     private int port;
@@ -38,7 +42,7 @@ public class UdpServer {
         // Start UDP listener in a separate thread to avoid blocking application startup
         Thread serverThread = new Thread(() -> {
             try (DatagramSocket socket = new DatagramSocket(port)) {
-                System.out.println("UDP Logging Server listening on port " + port);
+                log.info("UDP Logging Server listening on port {}", port);
                 byte[] buffer = new byte[1024];
 
                 while (true) {
@@ -49,7 +53,7 @@ public class UdpServer {
                     
                     int hmacIndex = message.lastIndexOf("|HMAC=");
                     if (hmacIndex == -1) {
-                        System.err.println("Dropped packet: Missing HMAC signature.");
+                        log.warn("Dropped packet: Missing HMAC signature.");
                         continue;
                     }
                     
@@ -57,15 +61,15 @@ public class UdpServer {
                     String receivedHmac = message.substring(hmacIndex + 6);
                     
                     if (!generateHmac(payload).equals(receivedHmac)) {
-                        System.err.println("Dropped packet: Invalid HMAC signature!");
+                        log.error("Dropped packet: Invalid HMAC signature! Potential spoofing attempt.");
                         continue;
                     }
                     
-                    System.out.println("Verified Datagram: " + payload);
+                    log.info("Verified Datagram: {}", payload);
                     anomalyDetector.analyzeLog(payload);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("UDP Server encountered a critical error", e);
             }
         });
         
