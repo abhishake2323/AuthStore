@@ -2,7 +2,7 @@
 
 ![Architecture](https://img.shields.io/badge/Architecture-Microservices-blue) ![Java](https://img.shields.io/badge/Java-21-orange) ![Security](https://img.shields.io/badge/Security-Zero%20Trust-red)
 
-A proof-of-concept, highly concurrent, distributed file storage ecosystem built securely on Java 21, Spring Boot, and Virtual Threads. Designed natively with a strict Zero-Trust security posture, the project leverages stateless Web Tokens (JWT), cryptographic HMAC Datagram validation, and real-time AI-simulated quarantine capabilities over IoT protocols.
+A proof-of-concept, highly concurrent, distributed file storage ecosystem built securely on Java 21, Spring Boot, and Virtual Threads. Designed natively with a strict Zero-Trust security posture, the project leverages stateless Web Tokens (JWT), Temporal Epoch Datagram validation, and real-time AI Machine Learning quarantine capabilities over IoT protocols.
 
 ## Architecture
 
@@ -15,8 +15,8 @@ graph TD
     Auth -.->|Validates Hashes| H2[(Embedded H2 DB)]
     Auth -->|Issues JWT| Client
     
-    Storage -->|UDP 9000 + HMAC| Logging(Logging Service\n:8083)
-    Logging -.->|Threat Hunt| AI[AI Anomaly Detector]
+    Storage -->|UDP 9000 + Temporal HMAC| Logging(Logging Service\n:8083)
+    Logging -.->|Threat Hunt| AI[Machine Learning Intrusion System]
     AI -->|Publish| MQTT{MQTT Broker\nHiveMQ}
 ```
 
@@ -24,7 +24,11 @@ graph TD
 - Zero-Trust Boundaries: All explicit inter-service and external communication points strictly mandate presentation of an HS256 JWT, verified independently by each service without shared persistence.
 - Embedded SSL/TLS 1.3: The entrypoint (API Gateway) automatically decrypts PKCS12 self-signed certificates to execute reverse-proxying.
 - Stateless Validation: Total eradication of Server-Side Session caching completely neutralizes all Cross-Site Request Forgery (CSRF) vectors. 
-- HMAC Network Signing: Log streams emitted by the Storage layer appended with symmetric cryptographic signatures to actively thwart UDP spoofing and DoS flood vectors.
+- Distributed Request Correlation: Every external client connecting to the API Gateway is instantly issued a globally unique `X-Trace-Id` UUID. This trace is propagated seamlessly across the internal reverse-proxy network down into the UDP Telemetry stream, providing total lifecycle tracking.
+- Deep Binary Malware Inspection: The `VaultAssetController` aggressively sweeps the raw byte streams of incoming uploads for illegal "Magic Signatures". Spotting the `0x4D 5A` hex pattern instantly triggers an execution ban, firmly blocking Windows `.exe` RCE payloads disguised under fake file extensions.
+- Advanced Replay Attack Defense: Telemetry emitted by the Storage layer enforces a strict 5000ms TTL (Time-to-Live) temporal validation window alongside HMAC cryptographic hashing to thwart UDP spoofing and network-capture Replay Attack vectors.
+- Cryptographic Asset Integrity: The Vault controller dynamically computes a real-time SHA-256 byte hashing digest during ingestion to firmly guarantee upstream data integrity.
+- Obfuscated Global Mapping: ControllerAdvice Exception handlers suppress all Whitelabel Error pages to prevent fingerprinting of the internal dependency stack.
 - Environment Isolation: Absolutely 0 secrets persist loosely within the byte code or repository index.
 
 ## How to Run the Application
@@ -59,7 +63,7 @@ mvn clean compile
 ### Step 3: Boot the Microservices
 In four separate terminal windows (with the environment variables set in each), navigate to the root directory and start the services in the following order:
 
-1. Start Logging Service (Ingests Datagrams and hosts AI Anomaly detection)
+1. Start Logging Service (Ingests Datagrams and hosts ML Intrusion detector)
 ```bash
 mvn spring-boot:run -pl logging-service
 ```
@@ -82,11 +86,11 @@ mvn spring-boot:run -pl api-gateway
 ### Step 4: Access the Ecosystem
 The ecosystem leverages reverse-proxy capabilities. All requests must go through the API Gateway on port `8443`.
 - Authenticate: `POST https://localhost:8443/api/auth/login` (Body `{"username": "admin", "password": "admin123"}`)
-- Upload Data: `POST https://localhost:8443/api/files/upload` (Requires standard `Authorization: Bearer <token>` header and a dummy Multipart File)
+- Upload Data: `POST https://localhost:8443/api/vault/secure-ingest` (Requires standard `Authorization: Bearer <token>` header and a dummy Multipart File)
 
 ## Tech Stack
 - Languages: Java 21 
 - Frameworks: Spring Boot 3.2.4 (Web, Security, Gateway, Data JPA)
 - Protocols: REST (HTTPS), UDP (Datagrams), IoT (MQTT v3)
 - Concurrency: Native OS-Virtual Thread Scheduling 
-- Security: JJWT, BCrypt, HMAC-SHA256
+- Security: JJWT, BCrypt, SHA-256, HMAC-SHA256
