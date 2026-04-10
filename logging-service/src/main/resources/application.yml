@@ -1,0 +1,14 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: logging-service
+
+udp:
+  port: 9000
+
+mqtt:
+  broker: tcp://broker.hivemq.com:1883
+  client-id: vault-ai-detector-client-1
+  topic: vault/sec/alerts
