@@ -7,6 +7,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+import com.vault.auth.model.User;
+import com.vault.auth.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -14,16 +19,25 @@ public class AuthController {
     @Autowired
     private JwtProvider jwtProvider;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody Map<String, String> loginRequest) {
-        // Dummy authentication for Zero Trust demonstration
         String username = loginRequest.get("username");
         String password = loginRequest.get("password");
 
-        // Real application would check against DB
-        if ("admin".equals(username) && "admin123".equals(password)) {
-            String jwt = jwtProvider.generateToken(username);
-            return ResponseEntity.ok(Map.of("token", jwt));
+        Optional<User> userOpt = userRepository.findByUsername(username);
+
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            if (passwordEncoder.matches(password, user.getPassword())) {
+                String jwt = jwtProvider.generateToken(username);
+                return ResponseEntity.ok(Map.of("token", jwt));
+            }
         }
 
         return ResponseEntity.status(401).body("Invalid credentials");

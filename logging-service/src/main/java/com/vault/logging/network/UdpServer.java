@@ -10,14 +10,28 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.nio.charset.StandardCharsets;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
+
 @Component
 public class UdpServer {
 
     @Value("${udp.port}")
     private int port;
 
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+
     @Autowired
     private AiAnomalyDetector anomalyDetector;
+
+    private String generateHmac(String data) throws Exception {
+        Mac mac = Mac.getInstance("HmacSHA256");
+        SecretKeySpec secretKeySpec = new SecretKeySpec(jwtSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+        mac.init(secretKeySpec);
+        return Base64.getEncoder().encodeToString(mac.doFinal(data.getBytes(StandardCharsets.UTF_8)));
+    }
 
     @PostConstruct
     public void startServer() {
@@ -32,10 +46,23 @@ public class UdpServer {
                     socket.receive(packet); // blocking call
                     
                     String message = new String(packet.getData(), 0, packet.getLength(), StandardCharsets.UTF_8);
-                    System.out.println("Received Datagram: " + message);
                     
-                    // Route to AI Anomaly Detector
-                    anomalyDetector.analyzeLog(message);
+                    int hmacIndex = message.lastIndexOf("|HMAC=");
+                    if (hmacIndex == -1) {
+                        System.err.println("Dropped packet: Missing HMAC signature.");
+                        continue;
+                    }
+                    
+                    String payload = message.substring(0, hmacIndex);
+                    String receivedHmac = message.substring(hmacIndex + 6);
+                    
+                    if (!generateHmac(payload).equals(receivedHmac)) {
+                        System.err.println("Dropped packet: Invalid HMAC signature!");
+                        continue;
+                    }
+                    
+                    System.out.println("Verified Datagram: " + payload);
+                    anomalyDetector.analyzeLog(payload);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
