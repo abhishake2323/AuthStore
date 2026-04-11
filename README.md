@@ -88,6 +88,15 @@ mvn spring-boot:run -pl storage-service
 mvn spring-boot:run -pl api-gateway
 ```
 
+### Alternative: Run via Docker Compose (DevOps Mode)
+If you prefer to bypass manual JVM boot sequences, you can run the entire High-Availability network ecosystem seamlessly using Docker.
+1. Formally compile the byte-code artifacts: `mvn clean compile package -DskipTests`
+2. Boot the entire distributed network matrix simultaneously via Native Containerization: 
+```bash
+docker compose up --build
+```
+All ports, routing structures (including Circuit Breaker failovers), and Environment overlays are fully handled natively by the orchestrator.
+
 ### Step 4: Access the Ecosystem
 The ecosystem leverages reverse-proxy capabilities. All requests must go through the API Gateway on port `8443`.
 - Authenticate: `POST https://localhost:8443/api/auth/login` (Body `{"username": "admin", "password": "admin123"}`)
