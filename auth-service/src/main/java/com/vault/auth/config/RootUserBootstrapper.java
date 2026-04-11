@@ -12,9 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Configuration
-public class DataSeeder {
+public class RootUserBootstrapper {
 
-    private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);
+    private static final Logger log = LoggerFactory.getLogger(RootUserBootstrapper.class);
 
     @Value("${admin.username}")
     private String adminUsername;

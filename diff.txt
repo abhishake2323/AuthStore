@@ -1,0 +1,95 @@
+diff --cc README.md
+index f049755,515e834..0000000
+--- a/README.md
++++ b/README.md
+@@@ -24,11 -24,8 +24,16 @@@ graph T
+  - Zero-Trust Boundaries: All explicit inter-service and external communication points strictly mandate presentation of an HS256 JWT, verified independently by each service without shared persistence.
+  - Embedded SSL/TLS 1.3: The entrypoint (API Gateway) automatically decrypts PKCS12 self-signed certificates to execute reverse-proxying.
+  - Stateless Validation: Total eradication of Server-Side Session caching completely neutralizes all Cross-Site Request Forgery (CSRF) vectors. 
+++<<<<<<< HEAD
+ +- Distributed Request Correlation: Every external client connecting to the API Gateway is instantly issued a globally unique `X-Trace-Id` UUID. This trace is propagated seamlessly across the internal reverse-proxy network down into the UDP Telemetry stream, providing total lifecycle tracking.
+ +- Deep Binary Malware Inspection: The `VaultAssetController` aggressively sweeps the raw byte streams of incoming uploads for illegal "Magic Signatures". Spotting the `0x4D 5A` hex pattern instantly triggers an execution ban, firmly blocking Windows `.exe` RCE payloads disguised under fake file extensions.
+  - Advanced Replay Attack Defense: Telemetry emitted by the Storage layer enforces a strict 5000ms TTL (Time-to-Live) temporal validation window alongside HMAC cryptographic hashing to thwart UDP spoofing and network-capture Replay Attack vectors.
+  - Cryptographic Asset Integrity: The Vault controller dynamically computes a real-time SHA-256 byte hashing digest during ingestion to firmly guarantee upstream data integrity.
+ +- Obfuscated Global Mapping: ControllerAdvice Exception handlers suppress all Whitelabel Error pages to prevent fingerprinting of the internal dependency stack.
+++=======
+++- Advanced Replay Attack Defense: Telemetry emitted by the Storage layer enforces a strict 5000ms TTL (Time-to-Live) temporal validation window alongside HMAC cryptographic hashing to thwart UDP spoofing and network-capture Replay Attack vectors.
+++- Cryptographic Asset Integrity: The Vault controller dynamically computes a real-time SHA-256 byte hashing digest during ingestion to firmly guarantee upstream data integrity.
+++>>>>>>> feature/10-advanced-architecture
+  - Environment Isolation: Absolutely 0 secrets persist loosely within the byte code or repository index.
+  
+  ## How to Run the Application
+diff --cc storage-service/src/main/java/com/vault/storage/controller/VaultAssetController.java
+index c7a1c76,3a43dcb..0000000
+--- a/storage-service/src/main/java/com/vault/storage/controller/VaultAssetController.java
++++ b/storage-service/src/main/java/com/vault/storage/controller/VaultAssetController.java
+@@@ -17,23 -17,12 +17,31 @@@ public class VaultAssetController 
+      @Autowired
+      private UdpTelemetryBroker telemetryBroker;
+  
+++<<<<<<< HEAD
+ +    // Advanced SHA-256 byte stream processing with RCE Magic Byte prevention
+ +    private String calculateChecksumAndValidateBinary(MultipartFile file) throws Exception {
+++=======
++     // Advanced SHA-256 byte stream processing for structural uniqueness
++     private String calculateChecksum(MultipartFile file) throws Exception {
+++>>>>>>> feature/10-advanced-architecture
+          MessageDigest digest = MessageDigest.getInstance("SHA-256");
+          try (InputStream is = file.getInputStream()) {
+              byte[] buffer = new byte[8192];
+              int bytesRead;
+++<<<<<<< HEAD
+ +            
+ +            // Magic Byte Validation (First block)
+ +            if ((bytesRead = is.read(buffer)) != -1) {
+ +                // 0x4D 0x5A stands for 'M' 'Z', the definitive header for Windows executable viruses/payloads
+ +                if (bytesRead >= 2 && buffer[0] == 0x4D && buffer[1] == 0x5A) { 
+ +                    throw new SecurityException("MALWARE_DETECTED");
+ +                }
+ +                digest.update(buffer, 0, bytesRead);
+ +            }
+ +            
+ +            // Standard byte buffer reading
+++=======
+++>>>>>>> feature/10-advanced-architecture
+              while ((bytesRead = is.read(buffer)) != -1) {
+                  digest.update(buffer, 0, bytesRead);
+              }
+@@@ -42,23 -31,18 +50,37 @@@
+      }
+  
+      @PostMapping("/secure-ingest")
+++<<<<<<< HEAD
+ +    public ResponseEntity<String> secureIngest(
+ +            @RequestParam("file") MultipartFile file,
+ +            @RequestHeader(value = "X-Trace-Id", defaultValue = "NO_TRACE") String traceId) {
+ +        try {
+ +            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+ +            String sha256 = calculateChecksumAndValidateBinary(file);
+ +            
+ +            // Appends the Gateway Trace ID cleanly into the IoT UDP flow
+ +            String auditMessage = String.format("SYS_EVENT=SECURE_INGEST|TRACE=%s|SUBJECT=%s|ASSET=%s|SHA256=%s|PROC_THREAD=%s",
+ +                    traceId, username, file.getOriginalFilename(), sha256, Thread.currentThread().getName());
+++=======
++     public ResponseEntity<String> secureIngest(@RequestParam("file") MultipartFile file) {
++         try {
++             String username = SecurityContextHolder.getContext().getAuthentication().getName();
++             String sha256 = calculateChecksum(file);
++             
++             // Re-structured standard log payload to a unique telemetry format
++             String auditMessage = String.format("SYS_EVENT=SECURE_INGEST|SUBJECT=%s|ASSET=%s|SHA256=%s|PROC_THREAD=%s",
++                     username, file.getOriginalFilename(), sha256, Thread.currentThread().getName());
+++>>>>>>> feature/10-advanced-architecture
+              
+              telemetryBroker.sendAuditLog(auditMessage);
+              
+              return ResponseEntity.ok("Asset cryptographically secured. Checksum: " + sha256);
+++<<<<<<< HEAD
+ +            
+ +        } catch (SecurityException se) {
+ +            return ResponseEntity.status(403).body("UPLOAD REJECTED: Malicious executable binary (MZ) detected in byte stream.");
+++=======
+++>>>>>>> feature/10-advanced-architecture
+          } catch (Exception e) {
+              return ResponseEntity.internalServerError().body("Failed to process asset.");
+          }
