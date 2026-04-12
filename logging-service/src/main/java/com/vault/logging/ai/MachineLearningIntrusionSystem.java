@@ -12,9 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Service
-public class AiAnomalyDetector {
+public class MachineLearningIntrusionSystem {
 
-    private static final Logger log = LoggerFactory.getLogger(AiAnomalyDetector.class);
+    private static final Logger log = LoggerFactory.getLogger(MachineLearningIntrusionSystem.class);
 
     @Autowired
     private MqttClient mqttClient;

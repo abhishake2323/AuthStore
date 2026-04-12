@@ -16,9 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Component
-public class NetworkLogEmitter {
+public class UdpTelemetryBroker {
 
-    private static final Logger log = LoggerFactory.getLogger(NetworkLogEmitter.class);
+    private static final Logger log = LoggerFactory.getLogger(UdpTelemetryBroker.class);
 
     @Value("${logging.service.host}")
     private String logHost;
@@ -36,22 +36,25 @@ public class NetworkLogEmitter {
         return Base64.getEncoder().encodeToString(mac.doFinal(data.getBytes(StandardCharsets.UTF_8)));
     }
 
-    // Async annotation ensures this fire-and-forget logic uses Virtual Threads (if configured)
     @Async
     public void sendAuditLog(String logMessage) {
         try (DatagramSocket socket = new DatagramSocket()) {
             InetAddress address = InetAddress.getByName(logHost);
             
-            String hmac = generateHmac(logMessage);
-            String securePayload = logMessage + "|HMAC=" + hmac;
+            // Replay Defense: Prepend Epoch Time
+            String epochStr = String.valueOf(System.currentTimeMillis());
+            String hmacPayload = epochStr + "|" + logMessage;
+            
+            String hmac = generateHmac(hmacPayload);
+            String securePayload = hmacPayload + "|HMAC=" + hmac;
             
             byte[] buffer = securePayload.getBytes(StandardCharsets.UTF_8);
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, logPort);
             
             socket.send(packet);
-            log.info("UDP Packet sent with HMAC signature!");
+            log.info("UDP Telemetry sent with Temporal HMAC signature!");
         } catch (Exception e) {
-            log.error("Failed to send UDP audit log packet", e);
+            log.error("Failed to send UDP telemetry packet", e);
         }
     }
 }
