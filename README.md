@@ -104,6 +104,29 @@ The ecosystem leverages reverse-proxy capabilities. All requests must go through
 - Authenticate: `POST https://localhost:8443/api/auth/login` (Body `{"username": "admin", "password": "admin123"}`)
 - Upload Data: `POST https://localhost:8443/api/vault/secure-ingest` (Requires standard `Authorization: Bearer <token>` header and a dummy Multipart File)
 
+### Step 5: Simulating Cyber Attacks (Test Payloads)
+The repository ships with safely sanitized dummy malware files located in the `test-payloads/` directory to help you quickly verify the Zero-Trust execution boundaries natively. 
+
+1. **Obtain your Token via cURL:**
+   ```bash
+   curl -k -s -X POST https://localhost:8443/api/auth/login -H "Content-Type: application/json" -d "@test-payloads/login.json"
+   ```
+   *(Save the returned `token` string)*
+
+2. **Test Safe File Ingestion:**
+   ```bash
+   curl -k -X POST https://localhost:8443/api/vault/secure-ingest -H "Authorization: Bearer <YOUR_TOKEN>" -F "file=@test-payloads/test-safe.txt"
+   ```
+
+3. **Verify Malware & Threat Guardrails:**
+   Attempt to upload the mock virus payloads to watch the JVM actively sever the stream and reject the request:
+   ```bash
+   curl -k -X POST https://localhost:8443/api/vault/secure-ingest -H "Authorization: Bearer <YOUR_TOKEN>" -F "file=@test-payloads/test-malware.exe"
+   curl -k -X POST https://localhost:8443/api/vault/secure-ingest -H "Authorization: Bearer <YOUR_TOKEN>" -F "file=@test-payloads/test-linux.elf"
+   curl -k -X POST https://localhost:8443/api/vault/secure-ingest -H "Authorization: Bearer <YOUR_TOKEN>" -F "file=@test-payloads/test-script.sh"
+   ```
+   *Expect a `403 Forbidden` response: `UPLOAD REJECTED: Malicious executable binary signature detected in byte stream.`*
+
 ## Tech Stack
 - Languages: Java 21 
 - Frameworks: Spring Boot 3.2.4 (Web, Security, Gateway, Data JPA)
