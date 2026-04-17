@@ -25,11 +25,18 @@ graph TD
 - Embedded SSL/TLS 1.3: The entrypoint (API Gateway) automatically decrypts PKCS12 self-signed certificates to execute reverse-proxying.
 - Stateless Validation: Total eradication of Server-Side Session caching completely neutralizes all Cross-Site Request Forgery (CSRF) vectors. 
 - Distributed Request Correlation: Every external client connecting to the API Gateway is instantly issued a globally unique `X-Trace-Id` UUID. This trace is propagated seamlessly across the internal reverse-proxy network down into the UDP Telemetry stream, providing total lifecycle tracking.
-- Deep Binary Malware Inspection: The `VaultAssetController` aggressively sweeps the raw byte streams of incoming uploads for illegal "Magic Signatures". Spotting the `0x4D 5A` hex pattern instantly triggers an execution ban, firmly blocking Windows `.exe` RCE payloads disguised under fake file extensions.
+- Advanced Multi-Platform Malware Inspection & Stream Processing: The `VaultAssetController` operates on incoming file streams with `DigestInputStream` to prevent out-of-memory DoS vectors. It aggressively sweeps the raw byte streams of incoming uploads for an expanded matrix of illegal "Magic Signatures". Spotting patterns like `0x4D 5A` (Windows PE), `0x7F 45 4C 46` (Linux ELF), `0xCE FA ED FE` variations (macOS Mach-O), or `0x23 21` (Unix Shell Scripts) instantly triggers an execution ban, firmly blocking cross-platform RCE payloads disguised under fake file extensions.
+- Path Traversal Prevention: Strict path normalization guardrails explicitly defend against directory traversal (`../`) extraction attacks when clients trigger file retrieval endpoints.
+- Request Size Bounds: Ingestion traffic is uniformly throttled to a strict 50MB Multipart threshold to neuter payload-congestion DoS maneuvers.
 - Advanced Replay Attack Defense: Telemetry emitted by the Storage layer enforces a strict 5000ms TTL (Time-to-Live) temporal validation window alongside HMAC cryptographic hashing to thwart UDP spoofing and network-capture Replay Attack vectors.
 - Cryptographic Asset Integrity: The Vault controller dynamically computes a real-time SHA-256 byte hashing digest during ingestion to firmly guarantee upstream data integrity.
 - Obfuscated Global Mapping: ControllerAdvice Exception handlers suppress all Whitelabel Error pages to prevent fingerprinting of the internal dependency stack.
 - Environment Isolation: Absolutely 0 secrets persist loosely within the byte code or repository index.
+
+## Automated Testing & TDD
+The ecosystem is mathematically hardened with **JUnit 5** and **Mockito** validation scripts natively populated across the `src/test/java/` module domains. Extensive mock protocols guarantee the absolute integrity of internal security logic:
+- `VaultAssetControllerTest`: Formally intercepts buffer pipelines to strictly prove that illegal `0x4D 5A` executable byte-streams categorically trigger `MALWARE_DETECTED` SecurityExceptions unconditionally.
+- `TemporalHmacValidationTest`: Evaluates temporal packet Epoch extraction boundaries against high-velocity simulated UDP spoofing scenarios that violate the `>5000ms` Time-To-Live network survival window.
 
 ## How to Run the Application
 
@@ -83,10 +90,42 @@ mvn spring-boot:run -pl storage-service
 mvn spring-boot:run -pl api-gateway
 ```
 
+### Alternative: Run via Docker Compose (DevOps Mode)
+If you prefer to bypass manual JVM boot sequences, you can run the entire High-Availability network ecosystem seamlessly using Docker.
+1. Formally compile the byte-code artifacts: `mvn clean compile package -DskipTests`
+2. Boot the entire distributed network matrix simultaneously via Native Containerization: 
+```bash
+docker compose up --build
+```
+All ports, routing structures (including Circuit Breaker failovers), and Environment overlays are fully handled natively by the orchestrator.
+
 ### Step 4: Access the Ecosystem
 The ecosystem leverages reverse-proxy capabilities. All requests must go through the API Gateway on port `8443`.
 - Authenticate: `POST https://localhost:8443/api/auth/login` (Body `{"username": "admin", "password": "admin123"}`)
 - Upload Data: `POST https://localhost:8443/api/vault/secure-ingest` (Requires standard `Authorization: Bearer <token>` header and a dummy Multipart File)
+
+### Step 5: Simulating Cyber Attacks (Test Payloads)
+The repository ships with safely sanitized dummy malware files located in the `test-payloads/` directory to help you quickly verify the Zero-Trust execution boundaries natively. 
+
+1. **Obtain your Token via cURL:**
+   ```bash
+   curl -k -s -X POST https://localhost:8443/api/auth/login -H "Content-Type: application/json" -d "@test-payloads/login.json"
+   ```
+   *(Save the returned `token` string)*
+
+2. **Test Safe File Ingestion:**
+   ```bash
+   curl -k -X POST https://localhost:8443/api/vault/secure-ingest -H "Authorization: Bearer <YOUR_TOKEN>" -F "file=@test-payloads/test-safe.txt"
+   ```
+
+3. **Verify Malware & Threat Guardrails:**
+   Attempt to upload the mock virus payloads to watch the JVM actively sever the stream and reject the request:
+   ```bash
+   curl -k -X POST https://localhost:8443/api/vault/secure-ingest -H "Authorization: Bearer <YOUR_TOKEN>" -F "file=@test-payloads/test-malware.exe"
+   curl -k -X POST https://localhost:8443/api/vault/secure-ingest -H "Authorization: Bearer <YOUR_TOKEN>" -F "file=@test-payloads/test-linux.elf"
+   curl -k -X POST https://localhost:8443/api/vault/secure-ingest -H "Authorization: Bearer <YOUR_TOKEN>" -F "file=@test-payloads/test-script.sh"
+   ```
+   *Expect a `403 Forbidden` response: `UPLOAD REJECTED: Malicious executable binary signature detected in byte stream.`*
 
 ## Tech Stack
 - Languages: Java 21 

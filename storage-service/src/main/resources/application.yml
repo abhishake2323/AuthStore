@@ -7,11 +7,15 @@ spring:
   threads:
     virtual:
       enabled: true
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
 
 jwt:
-  secret: ${JWT_SECRET}
+  secret: ${JWT_SECRET:YWUzZjM4NWQ2NWFiNGI0MmFmMWJjZDI4NDBlOGZiMmExMTA2ZDI5NWIwODI2NjdmYzIyOWI1YTRmNzkyYTQwMQ==}
 
 logging:
   service:
-    host: localhost
+    host: ${UDP_LOG_HOST:localhost}
     port: 9000

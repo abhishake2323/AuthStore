@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    build: 
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8443:8443"
+    environment:
+      - AUTH_SERVICE_URI=http://auth-service:8081
+      - STORAGE_SERVICE_URI=http://storage-service:8082
+      - VAULT_KEYSTORE_PASSWORD=${VAULT_KEYSTORE_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-check-certificate -qO- https://localhost:8443/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      storage-service:
+        condition: service_healthy
+
+  auth-service:
+    build: 
+      context: ./auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - JWT_SECRET=${JWT_SECRET}
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  storage-service:
+    build: 
+      context: ./storage-service
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      - JWT_SECRET=${JWT_SECRET}
+      - UDP_LOG_HOST=logging-service
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      logging-service:
+        condition: service_healthy
+
+  logging-service:
+    build: 
+      context: ./logging-service
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8083"
+    environment:
+      - JWT_SECRET=${JWT_SECRET}
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

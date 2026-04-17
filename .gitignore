@@ -2,4 +2,7 @@ target/
 *.log
 .DS_Store
 .idea
-*.iml
+.iml
+
+# Storage Database
+vault-data/
