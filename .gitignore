@@ -4,8 +4,5 @@ target/
 .idea
 .iml
 
-# Storage and Test Payloads
+# Storage Database
 vault-data/
-test-*
-login.json
-suspicious.txt
