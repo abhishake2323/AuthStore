@@ -2,4 +2,10 @@ target/
 *.log
 .DS_Store
 .idea
-*.iml
+.iml
+
+# Storage and Test Payloads
+vault-data/
+test-*
+login.json
+suspicious.txt
